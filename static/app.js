@@ -5,6 +5,7 @@ const status = document.getElementById("status");
 const progress = document.getElementById("progress");
 const session = document.getElementById("session");
 const screen = document.getElementById("screen");
+const selectedFile = document.getElementById("selected-file");
 
 function setStatus(message) {
   status.textContent = message;
@@ -15,7 +16,8 @@ fileInput.addEventListener("change", () => {
   if (!file) return;
 
   uploadButton.disabled = false;
-  setStatus(`APK listo: ${file.name}`);
+  selectedFile.textContent = `Archivo seleccionado: ${file.name}`;
+  setStatus(`APK listo para subir.`);
 });
 
 uploadButton.addEventListener("click", async () => {
