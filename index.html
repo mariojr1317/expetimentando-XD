@@ -3,59 +3,43 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0b0c0f">
+  <meta name="theme-color" content="Canvas">
   <title>Universal App Runner</title>
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
   <main class="app-shell">
-    <header class="topbar">
-      <div class="brand">
-        <span class="brand-mark">U</span>
-        <span>Universal App Runner</span>
-      </div>
-      <span class="badge">BETA</span>
-    </header>
+    <header class="topbar"><div class="brand"><span class="brand-mark">U</span><span>Universal App Runner</span></div><span class="badge">PRIVATE</span></header>
 
-    <section class="hero">
+    <section id="login-view" class="view">
+      <p class="eyebrow">PRIVATE RUNNER</p>
+      <h1>Acceso privado</h1>
+      <p class="subtitle">Introduce la contraseña para acceder a tu runner.</p>
+      <form id="login-form" class="panel">
+        <input id="password" type="password" autocomplete="current-password" placeholder="Contraseña" required>
+        <button type="submit">Entrar</button>
+        <div id="login-status" class="message"></div>
+      </form>
+    </section>
+
+    <section id="app-view" class="view" hidden>
       <p class="eyebrow">REMOTE APP RUNNER</p>
       <h1>Ejecuta tus apps desde el navegador.</h1>
-      <p class="subtitle">Sube un EXE o APK. La ejecución aislada y el streaming se procesarán de forma remota.</p>
+      <p class="subtitle">Sube un EXE o APK para crear una sesión remota.</p>
+      <section class="panel">
+        <label class="dropzone" for="file">
+          <span class="upload-icon">↑</span><span class="drop-title">Selecciona un archivo</span><span class="drop-hint">EXE o APK</span>
+          <input id="file" type="file" accept=".exe,.apk">
+        </label>
+        <button id="upload" type="button">Subir archivo</button>
+        <div class="status-row"><span id="status">Listo para comenzar</span><span id="session"></span></div>
+        <progress id="progress" value="0" max="100" hidden></progress>
+      </section>
+      <section id="screen"><div class="screen-placeholder"><span class="screen-dot"></span><span>La pantalla remota aparecerá aquí</span></div></section>
+      <button id="logout" class="secondary" type="button">Cerrar sesión</button>
     </section>
-
-    <section class="upload-card">
-      <label class="dropzone" for="file">
-        <span class="upload-icon">↑</span>
-        <span class="drop-title">Selecciona un archivo</span>
-        <span class="drop-hint">EXE o APK</span>
-        <input id="file" type="file" accept=".exe,.apk">
-      </label>
-
-      <button id="upload" type="button">Subir archivo</button>
-
-      <div class="status-row">
-        <span id="status">Listo para comenzar</span>
-        <span id="session"></span>
-      </div>
-
-      <progress id="progress" value="0" max="100" hidden></progress>
-    </section>
-
-    <section id="screen" aria-label="Pantalla remota">
-      <div class="screen-placeholder">
-        <span class="screen-dot"></span>
-        <span>La pantalla remota aparecerá aquí</span>
-      </div>
-    </section>
-
-    <footer>
-      <span>Sin instalaciones en tu dispositivo</span>
-      <span>•</span>
-      <span>Streaming remoto próximamente</span>
-    </footer>
+    <footer>Acceso protegido · Ejecución remota próximamente</footer>
   </main>
-
-  <script src="/static/config.js"></script>
-  <script src="/static/app.js"></script>
+  <script src="/static/config.js"></script><script src="/static/app.js"></script>
 </body>
 </html>

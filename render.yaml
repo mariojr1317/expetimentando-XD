@@ -7,3 +7,7 @@ services:
     envVars:
       - key: CORS_ORIGINS
         value: "*"
+      - key: RUNNER_PASSWORD
+        sync: false
+      - key: TOKEN_SECRET
+        sync: false
