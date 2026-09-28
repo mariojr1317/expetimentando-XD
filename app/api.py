@@ -1,23 +1,10 @@
 from pathlib import Path
 from fastapi import APIRouter, File, Header, HTTPException, UploadFile
-from pydantic import BaseModel
 from .android_runner import AndroidRunnerError, configured as android_runner_configured, create_android_session
-from .auth import check_password, create_token, valid_token
 from .config import ALLOWED_EXTENSIONS, ANDROID_RUNNER_URL, MAX_UPLOAD_SIZE, UPLOAD_DIR
 from .models import create_session, get_session
 
 router = APIRouter(prefix="/api")
-
-
-class LoginRequest(BaseModel):
-    password: str
-
-
-def require_auth(authorization: str | None):
-    if not authorization or not authorization.startswith("Bearer "):
-        raise HTTPException(401, "Autenticación requerida.")
-    if not valid_token(authorization[7:]):
-        raise HTTPException(401, "Sesión inválida o expirada.")
 
 
 @router.get("/health")
@@ -27,23 +14,11 @@ def health():
 
 @router.get("/auth/status")
 def auth_status():
-    from .auth import configured
-    return {"configured": configured()}
-
-
-@router.post("/auth/login")
-def login(data: LoginRequest):
-    from .auth import configured
-    if not configured():
-        raise HTTPException(503, "La contraseña del runner no está configurada en el servidor.")
-    if not check_password(data.password):
-        raise HTTPException(401, "Contraseña incorrecta.")
-    return {"token": create_token()}
+    return {"configured": False, "disabled": True}
 
 
 @router.get("/capabilities")
-def capabilities(authorization: str | None = Header(default=None)):
-    require_auth(authorization)
+def capabilities():
     return {
         "upload": True,
         "exe": {"available": False, "reason": "Windows isolated runner is not implemented"},
@@ -60,12 +35,7 @@ def capabilities(authorization: str | None = Header(default=None)):
 
 
 @router.post("/sessions")
-async def upload_app(
-    file: UploadFile = File(...),
-    authorization: str | None = Header(default=None),
-):
-    require_auth(authorization)
-
+async def upload_app(file: UploadFile = File(...)):
     filename = Path(file.filename or "").name
     extension = Path(filename).suffix.lower()
 
@@ -139,8 +109,7 @@ async def upload_app(
 
 
 @router.post("/sessions/{session_id}/start")
-def start_session(session_id: str, authorization: str | None = Header(default=None)):
-    require_auth(authorization)
+def start_session(session_id: str):
     session = get_session(session_id)
 
     if not session:
@@ -175,8 +144,7 @@ def start_session(session_id: str, authorization: str | None = Header(default=No
 
 
 @router.get("/sessions/{session_id}")
-def session_info(session_id: str, authorization: str | None = Header(default=None)):
-    require_auth(authorization)
+def session_info(session_id: str):
     session = get_session(session_id)
 
     if not session:
