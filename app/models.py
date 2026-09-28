@@ -8,6 +8,8 @@ class Session:
     filename: str = ""
     extension: str = ""
     status: str = "uploaded"
+    runner_session_id: str | None = None
+    runner_url: str | None = None
     created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 _sessions: dict[str, Session] = {}

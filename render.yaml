@@ -11,3 +11,7 @@ services:
         sync: false
       - key: TOKEN_SECRET
         sync: false
+      - key: ANDROID_RUNNER_URL
+        sync: false
+      - key: ANDROID_RUNNER_TOKEN
+        sync: false

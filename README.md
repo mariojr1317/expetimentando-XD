@@ -1,31 +1,85 @@
 # Universal App Runner
 
-Proyecto experimental para investigar cómo ejecutar aplicaciones en entornos aislados y transmitir su interfaz con baja latencia.
+Proyecto experimental para ejecutar aplicaciones en entornos aislados y, más adelante, transmitir su interfaz con baja latencia al navegador.
 
-## Objetivo
-Permitir que un cliente remoto interactúe con una aplicación que se ejecuta en un entorno aislado, sin instalar la aplicación directamente en el dispositivo cliente.
+## APK: Android Runner
 
-## Arquitectura prevista
-Cliente (browser) -> WebRTC/DataChannel -> Backend -> Runner aislado -> EXE/Android VM
+El backend ahora acepta APK y puede crear una sesión Android mediante un **Android Runner separado**.
+
+Arquitectura:
+
+```
+Chromebook
+   ↓ navegador
+GitHub Pages
+   ↓ HTTPS + token
+FastAPI / Render
+   ↓ HTTPS + ANDROID_RUNNER_TOKEN
+Android Runner dedicado
+   ↓ ADB
+Android Emulator / dispositivo de prueba
+   ↓
+APK
+```
+
+El Android Runner **no se ejecuta dentro del proceso FastAPI ni en el host de Render**. Debe ser una máquina/VM dedicada que tenga Android Emulator y ADB. Esto evita instalar APK arbitrarios en el servidor web principal.
+
+### Variables del backend
+
+Configura como secretos:
+
+- `RUNNER_PASSWORD`: contraseña para entrar a la web.
+- `TOKEN_SECRET`: secreto largo y aleatorio para firmar las sesiones web.
+- `ANDROID_RUNNER_URL`: URL HTTPS del servicio Android Runner.
+- `ANDROID_RUNNER_TOKEN`: token compartido entre FastAPI y el Android Runner.
+
+### Contrato del Android Runner
+
+El backend envía:
+
+- `POST /sessions`
+- Header: `Authorization: Bearer <ANDROID_RUNNER_TOKEN>`
+- Multipart:
+  - `session_id`
+  - `file` = APK
+
+El runner debe devolver JSON parecido a:
+
+```json
+{
+  "session_id": "runner-session-id",
+  "status": "running",
+  "message": "APK instalado y lanzado."
+}
+```
+
+Cuando el runner está configurado, subir un APK crea automáticamente la sesión Android. También existe:
+
+```
+POST /api/sessions/{session_id}/start
+```
+
+para volver a iniciar la sesión.
 
 ## Estado actual
-Fase 0: estructura inicial. La ejecución de archivos arbitrarios todavía NO está habilitada.
 
-Antes de ejecutar archivos desconocidos se necesita aislamiento real (VM/sandbox), límites de CPU/RAM/disco, control de red y eliminación automática de sesiones.
+- Login por contraseña: listo.
+- Subida de APK: lista.
+- Creación de sesión Android mediante runner: lista.
+- Android Emulator real: requiere desplegar el Android Runner en una máquina/VM dedicada.
+- Streaming WebRTC: todavía pendiente.
+- Control táctil/teclado/mouse: todavía pendiente.
+- Runner Windows para EXE: todavía pendiente.
 
-## Próximos pasos
-1. Backend Python.
-2. API de sesiones.
-3. Frontend web.
-4. Canal de entrada de baja latencia.
-5. Streaming mediante WebRTC.
-6. Runner aislado para EXE.
-7. Runner Android para APK.
-8. Medición de latencia end-to-end.
+## Seguridad
+
+No ejecutes APK desconocidos directamente en el host del backend. El Android Runner debe usar un emulador dedicado y aislado. No pongas contraseñas ni tokens en GitHub.
 
 ## Desarrollo
-Python 3.11+ recomendado.
-Instalar dependencias: pip install -r requirements.txt
-Iniciar servidor: python -m app.main
 
-Proyecto educativo/experimental. No ejecutes archivos desconocidos directamente en el sistema host.
+Python 3.11+ recomendado.
+
+```bash
+pip install -r requirements.txt
+python run.py
+```
