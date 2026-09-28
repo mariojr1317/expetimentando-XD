@@ -13,9 +13,9 @@ def health():
 def capabilities():
     return {
         "upload": True,
-        "exe": {"available": False, "reason": "isolated Windows runner not implemented"},
-        "apk": {"available": False, "reason": "isolated Android runner not implemented"},
-        "webrtc": {"available": False, "reason": "streaming not implemented"},
+        "exe": {"available": False, "reason": "Windows isolated runner is not implemented"},
+        "apk": {"available": False, "reason": "Android isolated runner is not implemented"},
+        "webrtc": {"available": False, "reason": "WebRTC streaming is not implemented"},
     }
 
 @router.post("/sessions")
@@ -35,13 +35,13 @@ async def upload_app(file: UploadFile = File(...)):
                 size += len(chunk)
                 if size > MAX_UPLOAD_SIZE:
                     destination.unlink(missing_ok=True)
-                    raise HTTPException(413, "El archivo supera el limite de 500 MB.")
+                    raise HTTPException(413, "El archivo supera el límite configurado.")
                 output.write(chunk)
     except HTTPException:
         raise
-    except Exception:
+    except Exception as exc:
         destination.unlink(missing_ok=True)
-        raise HTTPException(500, "No se pudo guardar el archivo.")
+        raise HTTPException(500, f"No se pudo guardar el archivo: {exc}")
 
     return {
         "session_id": session.id,

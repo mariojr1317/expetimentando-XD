@@ -6,17 +6,20 @@ const session = document.getElementById("session");
 
 const API_BASE_URL = (window.API_BASE_URL || "").replace(/\/$/, "");
 
+function setStatus(message) {
+  status.textContent = message;
+}
+
 uploadButton.addEventListener("click", async () => {
   const file = fileInput.files[0];
   if (!file) return setStatus("Selecciona un archivo .EXE o .APK.");
 
   if (!API_BASE_URL && window.location.hostname.endsWith("github.io")) {
-    return setStatus("El frontend está en GitHub Pages. Configura API_BASE_URL en static/config.js con la URL de tu backend FastAPI.");
+    return setStatus("Configura la URL pública del backend en static/config.js.");
   }
 
   const form = new FormData();
   form.append("file", file);
-
   uploadButton.disabled = true;
   progress.hidden = false;
   progress.value = 0;
@@ -27,7 +30,6 @@ uploadButton.addEventListener("click", async () => {
       method: "POST",
       body: form
     });
-
     const contentType = response.headers.get("content-type") || "";
     const body = await response.text();
 
@@ -36,10 +38,7 @@ uploadButton.addEventListener("click", async () => {
     }
 
     const data = JSON.parse(body);
-
-    if (!response.ok) {
-      throw new Error(data.detail || "Error al subir el archivo.");
-    }
+    if (!response.ok) throw new Error(data.detail || "Error al subir el archivo.");
 
     progress.value = 100;
     session.textContent = "Sesión: " + data.session_id;
@@ -50,7 +49,3 @@ uploadButton.addEventListener("click", async () => {
     uploadButton.disabled = false;
   }
 });
-
-function setStatus(message) {
-  status.textContent = message;
-}

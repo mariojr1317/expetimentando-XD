@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -6,12 +7,12 @@ from fastapi.staticfiles import StaticFiles
 from .api import router
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+app = FastAPI(title="Universal App Runner", version="0.3.0")
 
-app = FastAPI(title="Universal App Runner", version="0.2.0")
-
+origins = [x.strip() for x in os.getenv("CORS_ORIGINS", "*").split(",") if x.strip()]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -1,4 +1,4 @@
-// Para desarrollo local deja esta cadena vacía.
-// Para GitHub Pages, coloca aquí la URL pública de tu backend FastAPI.
-// Ejemplo: "https://tu-backend.onrender.com"
+// Si frontend y backend están en el mismo dominio, déjalo vacío.
+// Si GitHub Pages aloja el frontend, pon aquí la URL pública del backend.
+// Ejemplo: window.API_BASE_URL = "https://tu-backend.onrender.com";
 window.API_BASE_URL = "";

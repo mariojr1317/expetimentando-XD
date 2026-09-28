@@ -9,14 +9,15 @@
 <body>
   <main class="card">
     <h1>Universal App Runner</h1>
-    <p>Sube un EXE o APK para crear una sesión. La ejecución aislada y el streaming se añadirán después.</p>
+    <p>Ejecuta aplicaciones en un entorno remoto aislado, sin instalar dependencias en tu dispositivo.</p>
     <input id="file" type="file" accept=".exe,.apk">
     <button id="upload">Subir archivo</button>
     <div id="status">Estado: esperando archivo...</div>
     <progress id="progress" value="0" max="100" hidden></progress>
     <div id="session"></div>
-    <div id="screen">La pantalla remota aparecerá aquí cuando WebRTC esté implementado.</div>
+    <div id="screen">La pantalla remota aparecerá aquí cuando el streaming esté implementado.</div>
   </main>
+  <script src="/static/config.js"></script>
   <script src="/static/app.js"></script>
 </body>
 </html>
