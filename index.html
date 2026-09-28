@@ -11,18 +11,7 @@
   <main class="app-shell">
     <header class="topbar"><div class="brand"><span class="brand-mark">U</span><span>Universal App Runner</span></div><span class="badge">PRIVATE</span></header>
 
-    <section id="login-view" class="view">
-      <p class="eyebrow">PRIVATE RUNNER</p>
-      <h1>Acceso privado</h1>
-      <p class="subtitle">Introduce la contraseña para acceder a tu runner.</p>
-      <form id="login-form" class="panel">
-        <input id="password" type="password" autocomplete="current-password" placeholder="Contraseña" required>
-        <button type="submit">Entrar</button>
-        <div id="login-status" class="message"></div>
-      </form>
-    </section>
-
-    <section id="app-view" class="view" hidden>
+    <section id="app-view" class="view">
       <p class="eyebrow">REMOTE APP RUNNER</p>
       <h1>Ejecuta tus apps desde el navegador.</h1>
       <p class="subtitle">Sube un EXE o APK para crear una sesión remota.</p>
@@ -36,9 +25,8 @@
         <progress id="progress" value="0" max="100" hidden></progress>
       </section>
       <section id="screen"><div class="screen-placeholder"><span class="screen-dot"></span><span>La pantalla remota aparecerá aquí</span></div></section>
-      <button id="logout" class="secondary" type="button">Cerrar sesión</button>
     </section>
-    <footer>Acceso protegido · Ejecución remota próximamente</footer>
+    <footer>Runner privado · Sin contraseña</footer>
   </main>
   <script src="/static/config.js"></script><script src="/static/app.js"></script>
 </body>
