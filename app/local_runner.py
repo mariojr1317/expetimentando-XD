@@ -86,7 +86,7 @@ def _package_from_apk(apk_path: Path) -> str | None:
     return None
 
 
-def install_and_launch_apk(apk_path: Path) -> dict:
+def install_and_launch_apk(apk_path: Path, package_override: str | None = None) -> dict:
     apk_path = apk_path.resolve()
 
     if not apk_path.exists() or apk_path.suffix.lower() != ".apk":
@@ -100,14 +100,14 @@ def install_and_launch_apk(apk_path: Path) -> dict:
         detail = install.stderr.strip() or install.stdout.strip()
         raise LocalRunnerError("ADB no pudo instalar el APK: " + detail)
 
-    package = _package_from_apk(apk_path)
+    package = package_override or _package_from_apk(apk_path)
 
     if not package:
         return {
             "status": "installed",
             "message": (
-                "APK instalado correctamente. No se pudo detectar automáticamente "
-                "el paquete para abrirlo."
+                "APK instalado correctamente. Añade el campo \"package\" al JSON "
+                "para que el runner pueda abrirlo automáticamente."
             ),
         }
 
