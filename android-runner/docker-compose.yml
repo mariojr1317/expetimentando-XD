@@ -1,0 +1,15 @@
+services:
+  emulator:
+    image: us-docker.pkg.dev/android-emulator-268719/images/30-google-x64:30.1.2
+    devices:
+      - /dev/kvm:/dev/kvm
+    ports:
+      - "5555:5555"
+      - "8554:8554"
+    environment:
+      ADBKEY: ${ADBKEY:-}
+    restart: unless-stopped
+
+# The Google gateway is intentionally kept as a separate service.
+# It connects the browser to the emulator's native gRPC/WebRTC endpoint.
+# See README.md for the official gateway startup procedure.
