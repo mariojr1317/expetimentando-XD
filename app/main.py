@@ -1,28 +1,26 @@
+from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+from .api import router
 
-app = FastAPI(title='Universal App Runner', version='0.1.0')
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+app = FastAPI(title="Universal App Runner", version="0.2.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=['*'],
+    allow_origins=["*"],
     allow_credentials=False,
-    allow_methods=['*'],
-    allow_headers=['*'],
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
-@app.get('/')
+app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
+
+@app.get("/")
 def root():
-    return {'name': 'Universal App Runner', 'version': '0.1.0', 'status': 'development'}
+    return FileResponse(BASE_DIR / "index.html")
 
-@app.get('/health')
-def health():
-    return {'status': 'ok'}
-
-@app.get('/api/capabilities')
-def capabilities():
-    return {
-        'exe': {'available': False, 'reason': 'isolated runner not implemented'},
-        'apk': {'available': False, 'reason': 'Android runner not implemented'},
-        'webrtc': {'available': False, 'reason': 'streaming not implemented'},
-    }
+app.include_router(router)
