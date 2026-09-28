@@ -63,17 +63,28 @@ uploadButton.addEventListener("click", async () => {
     const contentType = response.headers.get("content-type") || "";
     const body = await response.text();
 
+    if (!response.ok) {
+      let detail = body;
+
+      if (contentType.includes("application/json")) {
+        try {
+          const data = JSON.parse(body);
+          detail = data.detail || data.message || body;
+        } catch {
+          // Usa el cuerpo original si no es JSON válido.
+        }
+      }
+
+      throw new Error(`HTTP ${response.status}: ${detail}`);
+    }
+
     if (!contentType.includes("application/json")) {
       throw new Error(
-        `El backend respondió ${response.status} con HTML. Comprueba que FastAPI sea el servidor de localhost:8000.`
+        `El servidor respondió sin JSON (HTTP ${response.status}). Respuesta: ${body.slice(0, 300)}`
       );
     }
 
     const data = JSON.parse(body);
-
-    if (!response.ok) {
-      throw new Error(data.detail || "Error al ejecutar la aplicación.");
-    }
 
     progress.value = 100;
     session.textContent = "Sesión: " + (data.session_id || "local");
