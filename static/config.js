@@ -1,7 +1,3 @@
-// Backend local de Universal App Runner.
-// Si la interfaz viene de FastAPI, usa el mismo origen.
-// Si INDEX.HTML se abre directamente con doble clic, usa localhost.
-window.API_BASE_URL =
-  window.location.protocol === "file:"
-    ? "http://127.0.0.1:8000"
-    : window.location.origin;
+// El runner siempre es local.
+// Esto evita que un GitHub Pages/Nginx reciba el APK antes de llegar a FastAPI.
+window.API_BASE_URL = "http://127.0.0.1:8000";
