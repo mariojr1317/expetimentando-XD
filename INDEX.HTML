@@ -410,8 +410,9 @@
         <label class="dropzone" for="file" id="dropzone-area">
           <span class="upload-icon">↑</span>
           <span class="drop-title">Selecciona un archivo</span>
-          <span class="drop-hint">EXE o APK</span>
-          <input id="file" type="file" accept=".exe,.apk">
+          <span class="drop-hint">Selecciona un APK desde tu dispositivo</span>
+          <span id="selected-file" class="drop-hint" style="margin-top:8px; color:#cbd5e1;"></span>
+          <input id="file" type="file" accept=".apk">
         </label>
 
         <button id="upload" type="button" disabled>Subir archivo</button>
