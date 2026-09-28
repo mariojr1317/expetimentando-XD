@@ -17,8 +17,18 @@ uploadButton.addEventListener("click", async () => {
 
   try {
     const response = await fetch("/api/sessions", { method: "POST", body: form });
-    const data = await response.json();
+    const contentType = response.headers.get("content-type") || "";
+    const body = await response.text();
+
+    let data;
+    if (contentType.includes("application/json")) {
+      data = JSON.parse(body);
+    } else {
+      throw new Error("El servidor devolvió HTML en vez de JSON. Si estás usando GitHub Pages, FastAPI no está ejecutándose allí.");
+    }
+
     if (!response.ok) throw new Error(data.detail || "Error al subir el archivo.");
+
     progress.value = 100;
     session.textContent = "Sesión: " + data.session_id;
     setStatus(data.message);
