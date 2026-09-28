@@ -1,6 +1,6 @@
 # Universal App Runner — Local
 
-Versión local del proyecto. El navegador habla con FastAPI en `localhost` y el APK se instala en un dispositivo o emulador Android conectado por ADB.
+Runner completamente local. El navegador habla con FastAPI en localhost y la aplicación se ejecuta en la misma máquina.
 
 ## Flujo
 
@@ -8,22 +8,20 @@ Versión local del proyecto. El navegador habla con FastAPI en `localhost` y el 
 Navegador
    ↓
 FastAPI (127.0.0.1:8000)
-   ↓
-ADB local
-   ↓
-Android Emulator / dispositivo
-   ↓
-APK
+   ├── APK → ADB → Android local
+   └── EXE → proceso Windows local
 ```
 
-No se usa Render ni se sube el APK a Internet.
+No se usa Render, no se envían los archivos a un servidor remoto y no se necesita una cuenta.
 
-## Requisitos para APK
+## APK
+
+Requisitos:
 
 - Python 3.11+
 - Android SDK Platform-Tools (`adb`)
-- Un Android Emulator local o un dispositivo Android con ADB.
-- Para apertura automática: `aapt` debe estar disponible.
+- Android Emulator local o Android con ADB
+- `aapt` para apertura automática cuando sea necesario
 
 Comprueba ADB:
 
@@ -31,18 +29,29 @@ Comprueba ADB:
 adb devices
 ```
 
-Debe aparecer al menos un dispositivo con estado `device`.
-
-## Ejecutar
+Después:
 
 ```bash
 pip install -r requirements.txt
 python run.py
 ```
 
-Después abre `http://127.0.0.1:8000`.
+Abre `http://127.0.0.1:8000`.
 
-Selecciona un APK y pulsa **Subir archivo**. El backend lo guarda temporalmente, lo instala con `adb install -r` y, cuando puede detectar el package name, lo abre con ADB.
+## EXE
+
+Los `.exe` se ejecutan **directamente en el PC local con Windows** mediante `subprocess.Popen`. No se ejecutan en la nube.
+
+El runner hace una comprobación antes de iniciar un EXE:
+
+- mínimo configurable de 2 núcleos
+- mínimo configurable de 1024 MB de RAM disponible
+
+Por tanto, una máquina con **1 núcleo y 250 MB de RAM disponibles será rechazada** en vez de intentar ejecutar el programa y fingir que tiene recursos suficientes.
+
+Si el sistema no es Windows, el runner devuelve un mensaje claro: un EXE de Windows no puede ejecutarse directamente en ChromeOS/Linux.
+
+El runner tampoco puede garantizar que cualquier EXE funcione: un programa puede requerir DLL, drivers, arquitectura o componentes de Windows que no estén instalados. En esos casos el error se devuelve como estado del runner en lugar de romper FastAPI.
 
 ## Variables opcionales
 
@@ -51,17 +60,18 @@ ADB_PATH=adb
 ADB_SERIAL=
 AAPT_PATH=aapt
 MAX_UPLOAD_SIZE=524288000
+MIN_CPU_CORES=2
+MIN_AVAILABLE_RAM_MB=1024
+EXE_TIMEOUT=15
 ```
-
-`ADB_SERIAL` sirve para elegir un emulador concreto si hay varios dispositivos conectados.
 
 ## Estado
 
 - Interfaz local: lista.
 - Backend FastAPI local: listo.
-- Instalación de APK mediante ADB: lista.
-- Apertura automática: lista cuando `aapt` detecta el package.
-- Streaming del Android dentro de la página: pendiente.
-- Runner EXE: pendiente.
+- APK + ADB local: listo.
+- EXE + Windows local: listo.
+- Comprobación de recursos para EXE: lista.
+- Streaming de la pantalla dentro del navegador: pendiente.
 
-El runner local usa comandos ADB fijos y no ejecuta comandos proporcionados por el APK.
+**Importante:** ejecutar un EXE no significa que su ventana aparezca automáticamente dentro del navegador. La primera versión lo inicia en el escritorio local; el visor remoto/embebido es una fase separada.
