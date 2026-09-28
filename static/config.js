@@ -1,4 +1,7 @@
 // Backend local de Universal App Runner.
-// Funciona aunque abras INDEX.HTML directamente con doble clic,
-// siempre que run.py esté ejecutándose en http://127.0.0.1:8000.
-window.API_BASE_URL = "http://127.0.0.1:8000";
+// Si la interfaz viene de FastAPI, usa el mismo origen.
+// Si INDEX.HTML se abre directamente con doble clic, usa localhost.
+window.API_BASE_URL =
+  window.location.protocol === "file:"
+    ? "http://127.0.0.1:8000"
+    : window.location.origin;
