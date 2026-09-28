@@ -3,7 +3,7 @@ from pathlib import Path
 from fastapi import APIRouter, File, HTTPException, UploadFile
 
 from .config import ALLOWED_EXTENSIONS, MAX_UPLOAD_SIZE, UPLOAD_DIR
-from .local_runner import LocalRunnerError, install_and_launch_apk
+from .local_runner import LocalRunnerError, install_and_launch_apk, launch_exe
 from .models import create_session, get_session
 
 router = APIRouter(prefix="/api")
@@ -19,14 +19,15 @@ def capabilities():
     return {
         "mode": "local",
         "upload": True,
-        "apk": {"available": True},
+        "apk": {"available": True, "runner": "ADB local"},
         "exe": {
-            "available": False,
-            "reason": "El runner EXE local todavía no está implementado.",
+            "available": True,
+            "runner": "Windows local",
+            "note": "Los EXE se ejecutan en el mismo PC; no se suben a Internet.",
         },
         "webrtc": {
             "available": False,
-            "reason": "La primera versión usa el emulador local; streaming embebido queda para después.",
+            "reason": "El visor embebido queda para una fase posterior.",
         },
     }
 
@@ -37,7 +38,7 @@ async def upload_app(file: UploadFile = File(...)):
     extension = Path(filename).suffix.lower()
 
     if extension not in ALLOWED_EXTENSIONS:
-        raise HTTPException(400, "Esta versión local acepta archivos .APK.")
+        raise HTTPException(400, "Solo se aceptan archivos .APK y .EXE.")
 
     session = create_session(filename, extension)
     destination = UPLOAD_DIR / f"{session.id}{extension}"
@@ -55,10 +56,13 @@ async def upload_app(file: UploadFile = File(...)):
         raise
     except Exception as exc:
         destination.unlink(missing_ok=True)
-        raise HTTPException(500, f"No se pudo guardar el APK: {exc}") from exc
+        raise HTTPException(500, f"No se pudo guardar el archivo: {exc}") from exc
 
     try:
-        result = install_and_launch_apk(destination)
+        if extension == ".apk":
+            result = install_and_launch_apk(destination)
+        else:
+            result = launch_exe(destination)
     except LocalRunnerError as exc:
         session.status = "runner_error"
         return {
@@ -80,6 +84,7 @@ async def upload_app(file: UploadFile = File(...)):
         "status": session.status,
         "message": result["message"],
         "package": result.get("package"),
+        "pid": result.get("pid"),
     }
 
 
@@ -90,12 +95,17 @@ def start_session(session_id: str):
     if not session:
         raise HTTPException(404, "Sesión no encontrada.")
 
-    apk_path = UPLOAD_DIR / f"{session.id}.apk"
-    if not apk_path.exists():
-        raise HTTPException(404, "El APK de la sesión ya no está disponible.")
+    app_path = UPLOAD_DIR / f"{session.id}{session.extension}"
+    if not app_path.exists():
+        raise HTTPException(404, "El archivo de la sesión ya no está disponible.")
 
     try:
-        result = install_and_launch_apk(apk_path)
+        if session.extension == ".apk":
+            result = install_and_launch_apk(app_path)
+        elif session.extension == ".exe":
+            result = launch_exe(app_path)
+        else:
+            raise LocalRunnerError("Tipo de archivo no soportado.")
     except LocalRunnerError as exc:
         session.status = "runner_error"
         raise HTTPException(503, str(exc)) from exc
@@ -107,6 +117,7 @@ def start_session(session_id: str):
         "status": session.status,
         "message": result["message"],
         "package": result.get("package"),
+        "pid": result.get("pid"),
     }
 
 
