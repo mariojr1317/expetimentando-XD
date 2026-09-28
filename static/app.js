@@ -17,19 +17,21 @@ fileInput.addEventListener("change", () => {
 
   uploadButton.disabled = false;
   selectedFile.textContent = `Archivo seleccionado: ${file.name}`;
-  setStatus(`APK listo para subir.`);
+  const extension = file.name.toLowerCase().endsWith(".apk") ? "APK" : "EXE";
+  setStatus(`${extension} listo para ejecutar localmente.`);
 });
 
 uploadButton.addEventListener("click", async () => {
   const file = fileInput.files[0];
 
   if (!file) {
-    setStatus("Selecciona un APK.");
+    setStatus("Selecciona un APK o EXE.");
     return;
   }
 
-  if (!file.name.toLowerCase().endsWith(".apk")) {
-    setStatus("Esta versión local acepta archivos .APK.");
+  const lowerName = file.name.toLowerCase();
+  if (!lowerName.endsWith(".apk") && !lowerName.endsWith(".exe")) {
+    setStatus("Solo se aceptan archivos .APK y .EXE.");
     return;
   }
 
@@ -39,7 +41,7 @@ uploadButton.addEventListener("click", async () => {
   uploadButton.disabled = true;
   progress.hidden = false;
   progress.value = 10;
-  setStatus("Copiando APK al runner local...");
+  setStatus("Copiando archivo al runner local...");
 
   try {
     const response = await fetch(API_BASE_URL + "/api/sessions", {
@@ -51,13 +53,15 @@ uploadButton.addEventListener("click", async () => {
     const body = await response.text();
 
     if (!contentType.includes("application/json")) {
-      throw new Error("El servidor local no respondió con JSON.");
+      throw new Error(
+        `El backend respondió ${response.status} con HTML. Comprueba que FastAPI sea el servidor de localhost:8000.`
+      );
     }
 
     const data = JSON.parse(body);
 
     if (!response.ok) {
-      throw new Error(data.detail || "Error al ejecutar el APK.");
+      throw new Error(data.detail || "Error al ejecutar la aplicación.");
     }
 
     progress.value = 100;
@@ -68,10 +72,14 @@ uploadButton.addEventListener("click", async () => {
       screen.classList.add("active");
       const label = screen.querySelector(".screen-placeholder span:last-child");
       if (label) {
-        label.textContent = "APK ejecutándose en el Android local.";
+        label.textContent =
+          data.extension === ".exe"
+            ? "EXE ejecutándose localmente en Windows."
+            : "APK ejecutándose en el Android local.";
       }
     }
   } catch (error) {
+    progress.value = 0;
     setStatus("Error: " + error.message);
   } finally {
     uploadButton.disabled = false;
