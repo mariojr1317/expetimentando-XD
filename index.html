@@ -3,20 +3,58 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0c0f">
   <title>Universal App Runner</title>
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-  <main class="card">
-    <h1>Universal App Runner</h1>
-    <p>Ejecuta aplicaciones en un entorno remoto aislado, sin instalar dependencias en tu dispositivo.</p>
-    <input id="file" type="file" accept=".exe,.apk">
-    <button id="upload">Subir archivo</button>
-    <div id="status">Estado: esperando archivo...</div>
-    <progress id="progress" value="0" max="100" hidden></progress>
-    <div id="session"></div>
-    <div id="screen">La pantalla remota aparecerá aquí cuando el streaming esté implementado.</div>
+  <main class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark">U</span>
+        <span>Universal App Runner</span>
+      </div>
+      <span class="badge">BETA</span>
+    </header>
+
+    <section class="hero">
+      <p class="eyebrow">REMOTE APP RUNNER</p>
+      <h1>Ejecuta tus apps desde el navegador.</h1>
+      <p class="subtitle">Sube un EXE o APK. La ejecución aislada y el streaming se procesarán de forma remota.</p>
+    </section>
+
+    <section class="upload-card">
+      <label class="dropzone" for="file">
+        <span class="upload-icon">↑</span>
+        <span class="drop-title">Selecciona un archivo</span>
+        <span class="drop-hint">EXE o APK</span>
+        <input id="file" type="file" accept=".exe,.apk">
+      </label>
+
+      <button id="upload" type="button">Subir archivo</button>
+
+      <div class="status-row">
+        <span id="status">Listo para comenzar</span>
+        <span id="session"></span>
+      </div>
+
+      <progress id="progress" value="0" max="100" hidden></progress>
+    </section>
+
+    <section id="screen" aria-label="Pantalla remota">
+      <div class="screen-placeholder">
+        <span class="screen-dot"></span>
+        <span>La pantalla remota aparecerá aquí</span>
+      </div>
+    </section>
+
+    <footer>
+      <span>Sin instalaciones en tu dispositivo</span>
+      <span>•</span>
+      <span>Streaming remoto próximamente</span>
+    </footer>
   </main>
+
   <script src="/static/config.js"></script>
   <script src="/static/app.js"></script>
 </body>
