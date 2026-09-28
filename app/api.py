@@ -52,7 +52,7 @@ def _safe_json_config(data: object) -> dict:
         or ".." in filename_path.parts
         or filename_path.suffix.lower() != ".apk"
     ):
-        raise LocalRunnerError("El campo "file" debe ser solamente el nombre de un .apk.")
+        raise LocalRunnerError('El campo "file" debe ser solamente el nombre de un .apk.')
 
     package = data.get("package")
     if package is not None and (
