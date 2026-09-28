@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Universal App Runner</title>
+  <style>
+    body{font-family:system-ui,sans-serif;max-width:900px;margin:40px auto;padding:20px;background:#111;color:#eee}
+    .card{background:#1b1b1b;border:1px solid #333;border-radius:14px;padding:24px}
+    button{padding:10px 16px;border:0;border-radius:8px;cursor:pointer}
+    #status{margin-top:16px;color:#aaa}
+    #screen{margin-top:20px;width:100%;aspect-ratio:16/9;background:#000;border-radius:10px;display:grid;place-items:center;color:#666}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Universal App Runner</h1>
+    <p>Ejecuta aplicaciones en un entorno remoto y recibe su interfaz con baja latencia.</p>
+    <input id="file" type="file" accept=".exe,.apk">
+    <button id="upload">Preparar archivo</button>
+    <div id="status">Estado: esperando archivo...</div>
+    <div id="screen">La pantalla remota aparecerá aquí</div>
+  </div>
+
+  <script>
+    const fileInput = document.getElementById('file');
+    const button = document.getElementById('upload');
+    const status = document.getElementById('status');
+
+    button.addEventListener('click', async () => {
+      const file = fileInput.files[0];
+      if (!file) {
+        status.textContent = 'Estado: selecciona un APK o EXE.';
+        return;
+      }
+
+      status.textContent = `Estado: ${file.name} seleccionado. Runner todavía en desarrollo.`;
+    });
+  </script>
+</body>
+</html>
