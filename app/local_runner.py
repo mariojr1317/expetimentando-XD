@@ -3,7 +3,14 @@ import shutil
 import subprocess
 from pathlib import Path
 
-from .config import AAPT_PATH, ADB_PATH, ADB_SERIAL
+from .config import (
+    AAPT_PATH,
+    ADB_PATH,
+    ADB_SERIAL,
+    EXE_TIMEOUT,
+    MIN_AVAILABLE_RAM_MB,
+    MIN_CPU_CORES,
+)
 
 
 class LocalRunnerError(RuntimeError):
@@ -29,10 +36,10 @@ def _run(command: list[str], timeout: int = 60) -> subprocess.CompletedProcess[s
         )
     except FileNotFoundError as exc:
         raise LocalRunnerError(
-            "No se encontró ADB. Instala Android SDK Platform-Tools y asegúrate de que 'adb' esté en PATH."
+            "No se encontró la herramienta necesaria. Comprueba la instalación y el PATH."
         ) from exc
     except subprocess.TimeoutExpired as exc:
-        raise LocalRunnerError("ADB tardó demasiado en responder.") from exc
+        raise LocalRunnerError("El proceso tardó demasiado en responder.") from exc
 
 
 def _ensure_device() -> None:
@@ -43,14 +50,16 @@ def _ensure_device() -> None:
             "ADB no pudo iniciarse: " + (result.stderr.strip() or result.stdout.strip())
         )
 
-    devices = []
-    for line in result.stdout.splitlines():
-        if "\tdevice" in line:
-            devices.append(line.split("\t", 1)[0])
+    devices = [
+        line.split("\t", 1)[0]
+        for line in result.stdout.splitlines()
+        if "\tdevice" in line
+    ]
 
     if not devices:
         raise LocalRunnerError(
-            "No hay ningún dispositivo Android conectado. Inicia un emulador local y comprueba 'adb devices'."
+            "No hay ningún dispositivo Android conectado. Inicia un emulador local "
+            "o conecta un Android con ADB."
         )
 
 
@@ -96,7 +105,10 @@ def install_and_launch_apk(apk_path: Path) -> dict:
     if not package:
         return {
             "status": "installed",
-            "message": "APK instalado correctamente. No se pudo detectar automáticamente el paquete para abrirlo.",
+            "message": (
+                "APK instalado correctamente. No se pudo detectar automáticamente "
+                "el paquete para abrirlo."
+            ),
         }
 
     launch = _run(
@@ -114,4 +126,62 @@ def install_and_launch_apk(apk_path: Path) -> dict:
         "status": "running",
         "message": f"APK instalado y abierto en el Android local ({package}).",
         "package": package,
+    }
+
+
+def _check_exe_resources() -> None:
+    try:
+        import psutil
+    except ImportError as exc:
+        raise LocalRunnerError(
+            "Falta psutil. Ejecuta: pip install -r requirements.txt"
+        ) from exc
+
+    cores = os.cpu_count() or 1
+    available_ram_mb = psutil.virtual_memory().available // (1024 * 1024)
+
+    if cores < MIN_CPU_CORES or available_ram_mb < MIN_AVAILABLE_RAM_MB:
+        raise LocalRunnerError(
+            f"Recursos insuficientes para ejecutar EXE de forma segura: "
+            f"{cores} núcleo(s), {available_ram_mb} MB RAM disponibles. "
+            f"Se requieren al menos {MIN_CPU_CORES} núcleos y "
+            f"{MIN_AVAILABLE_RAM_MB} MB RAM disponibles."
+        )
+
+
+def launch_exe(exe_path: Path) -> dict:
+    exe_path = exe_path.resolve()
+
+    if exe_path.suffix.lower() != ".exe":
+        raise LocalRunnerError("El archivo no es un .exe.")
+
+    if not exe_path.exists():
+        raise LocalRunnerError("El archivo EXE no existe.")
+
+    if os.name != "nt":
+        raise LocalRunnerError(
+            "El runner EXE local funciona en Windows. ChromeOS/Linux no puede "
+            "ejecutar un .exe de Windows directamente."
+        )
+
+    _check_exe_resources()
+
+    try:
+        process = subprocess.Popen(
+            [str(exe_path)],
+            cwd=str(exe_path.parent),
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            shell=False,
+        )
+    except OSError as exc:
+        raise LocalRunnerError(
+            f"Windows no pudo iniciar el EXE: {exc}"
+        ) from exc
+
+    return {
+        "status": "running",
+        "message": f"EXE iniciado localmente (PID {process.pid}).",
+        "pid": process.pid,
     }
