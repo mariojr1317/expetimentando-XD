@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from fastapi import APIRouter, File, HTTPException, UploadFile
+from fastapi import APIRouter, HTTPException, Request
 
 from .config import ALLOWED_EXTENSIONS, MAX_UPLOAD_SIZE, UPLOAD_DIR
 from .local_runner import LocalRunnerError, install_and_launch_apk, launch_exe
@@ -74,8 +74,31 @@ def _safe_json_config(data: object) -> dict:
     }
 
 
+async def _get_upload(request: Request, max_part_size: int = MAX_UPLOAD_SIZE):
+    try:
+        form = await request.form(max_part_size=max_part_size)
+    except Exception as exc:
+        raise HTTPException(
+            413,
+            f"No se pudo recibir el archivo. Comprueba que no supere "
+            f"{MAX_UPLOAD_SIZE // (1024 * 1024)} MB. Detalle: {exc}",
+        ) from exc
+
+    if "file" not in form:
+        raise HTTPException(400, 'La petición debe incluir un campo "file".')
+
+    upload = form["file"]
+
+    if not hasattr(upload, "filename") or not hasattr(upload, "read"):
+        raise HTTPException(400, 'El campo "file" no contiene un archivo.')
+
+    return upload
+
+
 @router.post("/sessions")
-async def upload_app(file: UploadFile = File(...)):
+async def upload_app(request: Request):
+    file = await _get_upload(request)
+
     filename = Path(file.filename or "").name
     extension = Path(filename).suffix.lower()
 
@@ -131,7 +154,8 @@ async def upload_app(file: UploadFile = File(...)):
 
 
 @router.post("/configs")
-async def upload_config(file: UploadFile = File(...)):
+async def upload_config(request: Request):
+    file = await _get_upload(request, max_part_size=256 * 1024)
     filename = Path(file.filename or "").name
 
     if Path(filename).suffix.lower() != ".json":
